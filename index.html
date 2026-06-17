@@ -820,7 +820,7 @@
   .modal-bg.show{display:flex}
   .modal{background:#fff;border-radius:18px;width:100%;max-width:460px;box-shadow:var(--shadow-lg);
      max-height:92vh;overflow:auto;animation:pop .25s cubic-bezier(.2,.8,.25,1)}
-  .modal.wide{max-width:540px}
+  .modal.wide{max-width:660px}
   @keyframes pop{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
   .modal-head{padding:22px 24px 0;display:flex;align-items:flex-start;justify-content:space-between}
   .modal-head h3{font-size:21px;font-weight:900}
@@ -1423,11 +1423,11 @@ const DEFAULT_UNITS = [
   {key:'container', label:'Container 8×16×7.5', price:120, total:8, available:5, type:'container', desc:'Wind and water tight containers for all your storage needs.'}
 ];
 const DEFAULT_TENANTS = [
-  {unit:'B14', name:'John Smith',   size:'10×15', rent:169, balance:0,   due:'Jun 1, 2026', status:'Paid', email:'john.smith@email.com', gate:'4821', key:'10x15'},
-  {unit:'A03', name:'Maria Lopez',  size:'10×20', rent:135, balance:135, due:'Jun 1, 2026', status:'Past Due', email:'maria.lopez@email.com', gate:'2093', key:'10x20'},
-  {unit:'C09', name:'Dale Reed',    size:'10×30', rent:205, balance:0,   due:'Jun 5, 2026', status:'Paid', email:'dale.reed@email.com', gate:'7715', key:'10x30'},
-  {unit:'D04', name:'Lana Pierce',  size:'12×33', rent:260, balance:520, due:'May 1, 2026', status:'Past Due', email:'lana.pierce@email.com', gate:'3360', key:'12x33'},
-  {unit:'RV12',name:'Sam Carter',   size:'RV',    rent:85,  balance:0,   due:'Jun 1, 2026', status:'Paid', email:'sam.carter@email.com', gate:'5582', key:'rv'}
+  {unit:'B14', name:'John Smith',   size:'10×15', rent:169, balance:0,   due:'Jun 1, 2026', status:'Paid', email:'john.smith@email.com', gate:'4821*', key:'10x15'},
+  {unit:'A03', name:'Maria Lopez',  size:'10×20', rent:135, balance:135, due:'Jun 1, 2026', status:'Past Due', email:'maria.lopez@email.com', gate:'2093*', key:'10x20'},
+  {unit:'C09', name:'Dale Reed',    size:'10×30', rent:205, balance:0,   due:'Jun 5, 2026', status:'Paid', email:'dale.reed@email.com', gate:'7715*', key:'10x30'},
+  {unit:'D04', name:'Lana Pierce',  size:'12×33', rent:260, balance:520, due:'May 1, 2026', status:'Past Due', email:'lana.pierce@email.com', gate:'3360*', key:'12x33'},
+  {unit:'RV12',name:'Sam Carter',   size:'RV',    rent:85,  balance:0,   due:'Jun 1, 2026', status:'Paid', email:'sam.carter@email.com', gate:'5582*', key:'rv'}
 ];
 const FEATURES = [
   ['shield','24/7 Video Surveillance','Your belongings are always protected.'],
@@ -1642,7 +1642,7 @@ async function saveAll(){
   await Store.set('steelhead:meta',state.updated);
   if(API._jwt){ API.saveUnits(state.units).catch(()=>{}); API.saveTenants(state.tenants).catch(()=>{}); }
 }
-function genGate(){ return String(Math.floor(1000+Math.random()*9000)); }
+function genGate(){ return String(Math.floor(1000+Math.random()*9000))+'*'; }
 function nextDueDate(){ const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()+1); return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
 function genUnitId(key){ const pre=key==='rv'?'RV':key==='container'?'CT':['A','B','C','D'][Math.floor(Math.random()*4)]; let id; do{ id=pre+(Math.floor(Math.random()*89)+10); }while(state.tenants.some(t=>t.unit===id)); return id; }
 const checkSVG='<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>';
@@ -1834,7 +1834,7 @@ function pdRequests(t,d){
 function pdAutopay(){ const t=state.tenants[portalIdx],d=tenantDash(t); d.autopay=!d.autopay; t.autopay=d.autopay; saveAll(); renderPortal('billing'); toast(d.autopay?'Autopay turned on':'Autopay turned off'); }
 function pdNotify(k){ const t=state.tenants[portalIdx],d=tenantDash(t); d[k]=!d[k]; t[k]=d[k]; saveAll(); renderPortal('account'); }
 function pdSaveContact(){ const t=state.tenants[portalIdx],d=tenantDash(t); const em=val('pdEmail'),ph=val('pdPhone'); if(!em){toast('Email cannot be empty');return;} t.email=em; t.phone=ph; d.phone=ph; saveAll(); renderPortal('account'); toast('Contact info updated'); }
-function pdResetGate(){ const t=state.tenants[portalIdx]; t.gate=String(Math.floor(1000+Math.random()*9000)); saveAll(); renderPortal('account'); toast('New gate code generated'); }
+function pdResetGate(){ const t=state.tenants[portalIdx]; t.gate=genGate(); saveAll(); renderPortal('account'); toast('New gate code generated'); }
 function pdUpdateCard(){ toast('Card updates unlock once Stripe is connected'); }
 function pdRequest(kind){
   const t=state.tenants[portalIdx],d=tenantDash(t);
