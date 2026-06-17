@@ -872,6 +872,18 @@
   .tgl.on::after{left:20px}
   .pd-mini{font-size:13.5px;width:100%;padding:9px 11px;border:1px solid var(--line-2);border-radius:9px;font-family:var(--body);background:#fff}
   .pd-mini:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-soft)}
+  /* owner requests inbox */
+  .navbadge{margin-left:auto;min-width:19px;height:19px;padding:0 6px;border-radius:10px;background:var(--gold);color:#22303f;font-size:11px;font-weight:900;display:inline-flex;align-items:center;justify-content:center}
+  .reqitem{display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap;padding:15px 0;border-top:1px solid var(--line-2)}
+  .reqitem:first-child{border-top:none}
+  .reqmain{flex:1;min-width:200px}
+  .reqtop{font-size:14px;display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+  .reqtype{font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:5px;margin-right:6px}
+  .reqtype.x{background:#eaf1fb;color:#2f6cc4}
+  .reqtype.m{background:#fdeee0;color:#b9821f}
+  .reqdesc{font-size:13px;color:#475467;margin-top:4px}
+  .reqdate{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .reqacts{display:flex;gap:8px;align-items:center;flex:none}
   .actbtn.pay:hover{background:#27894e}
   .actbtn.del:hover{border-color:var(--red);color:var(--red)}
   .stepper{display:inline-flex;align-items:center;gap:0;border:1px solid var(--line-2);border-radius:8px;overflow:hidden}
@@ -1271,6 +1283,7 @@
       <a class="navitem on" data-ov="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</a>
       <a class="navitem" data-ov="units"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v16"/></svg>Units</a>
       <a class="navitem" data-ov="tenants"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M16 8a3 3 0 010 6"/></svg>Tenants &amp; Billing</a>
+      <a class="navitem" data-ov="requests"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H7l-3 3z"/><path d="M8 9h8M8 12h5"/></svg>Requests<span class="navbadge" id="reqBadge" style="display:none">0</span></a>
       <a class="navitem" data-ov="cameras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 7a2 2 0 012-2h9a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2z"/><path d="M15 10l5-3v10l-5-3z"/></svg>Cameras</a>
       <a class="navitem" data-ov="updates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>PDF Updates</a>
       <div class="facility">
@@ -1315,6 +1328,12 @@
       <div class="ov" id="ov-tenants">
         <div class="main-head"><h1>Tenants &amp; Billing</h1><span class="sub" id="tenantCount"></span><button class="ghostadd" style="margin-left:auto" onclick="openAddTenant()">＋ Add Tenant</button></div>
         <div class="panel"><table class="tbl"><thead><tr><th>Unit</th><th>Tenant</th><th>Size</th><th>Rent</th><th>Balance</th><th>Next Due</th><th>Status</th><th></th></tr></thead><tbody id="tenantTable"></tbody></table></div>
+      </div>
+
+      <!-- REQUESTS -->
+      <div class="ov" id="ov-requests">
+        <div class="main-head"><h1>Tenant Requests</h1><span class="sub" id="reqSub"></span></div>
+        <div class="panel" id="reqPanel"></div>
       </div>
 
       <!-- UPDATES -->
@@ -1449,7 +1468,7 @@ const boxSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
 const rvSVG  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="14" height="9" rx="1"/><path d="M16 10h3l3 3v3h-6z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>';
 const ctSVG  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="10" rx="1"/><path d="M7 7v10M11 7v10M15 7v10"/></svg>';
 
-let state = {units:[],tenants:[],updated:{avail:null,ten:null}};
+let state = {units:[],tenants:[],requests:[],updated:{avail:null,ten:null}};
 
 /* ---------------- app switching ---------------- */
 function switchApp(app){
@@ -1628,6 +1647,7 @@ function renderOwner(){
       <button class="actbtn" onclick="openEditTenant(${i})">Edit</button>
       <button class="actbtn del" onclick="removeTenant(${i})">✕</button>
     </div></td></tr>`).join('');
+  renderRequests();
 }
 function renderAll(){ renderFeatures(); renderPublic(); renderOwner(); }
 
@@ -1639,6 +1659,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeModal(); });
 async function saveAll(){
   await Store.set('steelhead:units',state.units);
   await Store.set('steelhead:tenants',state.tenants);
+  await Store.set('steelhead:requests',state.requests);
   await Store.set('steelhead:meta',state.updated);
   if(API._jwt){ API.saveUnits(state.units).catch(()=>{}); API.saveTenants(state.tenants).catch(()=>{}); }
 }
@@ -1818,6 +1839,9 @@ function pdDocs(t,d){
 }
 function pdRequests(t,d){
   const others=state.units.filter(u=>u.key!==t.key && u.available>0);
+  const mine=(state.requests||[]).filter(r=>r.email===t.email);
+  const pillStyle=s=>s==='Pending'?'background:#eef1f5;color:#54627a':'';
+  const pillCls=s=>s==='Approved'?'paid':s==='Declined'?'due':'';
   return `
    <div class="pcard"><h4>Request move-out</h4>
      <div class="pl" style="margin-bottom:10px">Give notice to vacate Unit ${t.unit}. We'll confirm your final billing date.</div>
@@ -1825,11 +1849,11 @@ function pdRequests(t,d){
      <button class="btn btn-line" style="padding:8px 14px;font-size:13px" onclick="pdRequest('moveout')">Submit notice</button></div>
    <div class="pcard"><h4>Transfer to another unit</h4>
      ${others.length?`<div style="margin-bottom:10px"><div class="pl" style="margin-bottom:4px">New unit size</div>
-       <select class="pd-mini" id="pdXfer">${others.map(u=>`<option value="${u.key}">${u.label} — ${fmtMoney(u.price)}/mo</option>`).join('')}</select></div>
+       <select class="pd-mini" id="pdXfer">${others.map(u=>`<option value="${u.key}">${u.label} — ${fmtMoney(u.price)}/mo (${u.available} open)</option>`).join('')}</select></div>
        <button class="btn btn-line" style="padding:8px 14px;font-size:13px" onclick="pdRequest('transfer')">Request transfer</button>`
        :`<div class="pl">No other sizes are available right now. Join the waitlist from the Units page.</div>`}</div>
-   ${d.requests.length?`<div class="pcard"><h4>Submitted requests</h4>
-     ${d.requests.map(rq=>`<div class="prow"><div><div class="dt">${rq.title}</div><div class="ds">${rq.date}</div></div><span class="pill" style="background:#eef1f5;color:#54627a">${rq.status}</span></div>`).join('')}</div>`:''}`;
+   ${mine.length?`<div class="pcard"><h4>Submitted requests</h4>
+     ${mine.map(rq=>`<div class="prow"><div><div class="dt">${rq.title}</div><div class="ds">${rq.date}</div></div><span class="pill ${pillCls(rq.status)}" style="${pillStyle(rq.status)}">${rq.status}</span></div>`).join('')}</div>`:''}`;
 }
 function pdAutopay(){ const t=state.tenants[portalIdx],d=tenantDash(t); d.autopay=!d.autopay; t.autopay=d.autopay; saveAll(); renderPortal('billing'); toast(d.autopay?'Autopay turned on':'Autopay turned off'); }
 function pdNotify(k){ const t=state.tenants[portalIdx],d=tenantDash(t); d[k]=!d[k]; t[k]=d[k]; saveAll(); renderPortal('account'); }
@@ -1837,11 +1861,80 @@ function pdSaveContact(){ const t=state.tenants[portalIdx],d=tenantDash(t); cons
 function pdResetGate(){ const t=state.tenants[portalIdx]; t.gate=genGate(); saveAll(); renderPortal('account'); toast('New gate code generated'); }
 function pdUpdateCard(){ toast('Card updates unlock once Stripe is connected'); }
 function pdRequest(kind){
-  const t=state.tenants[portalIdx],d=tenantDash(t);
-  if(kind==='moveout'){ const dt=val('pdMoveDate'); d.requests.unshift({title:'Move-out notice'+(dt?' · '+dt:''),date:stamp(),status:'Received'}); }
-  else { const sel=document.getElementById('pdXfer'); const u=state.units.find(x=>x.key===(sel&&sel.value)); d.requests.unshift({title:'Transfer request → '+(u?u.label:'new unit'),date:stamp(),status:'Pending'}); }
-  t.requests=d.requests; saveAll(); renderPortal('requests');
+  const t=state.tenants[portalIdx];
+  const id='REQ-'+Date.now().toString(36)+Math.floor(Math.random()*999);
+  if(kind==='moveout'){
+    const dt=val('pdMoveDate');
+    state.requests.unshift({id,email:t.email,tenantName:t.name,unit:t.unit,type:'moveout',moveDate:dt||'',title:'Move-out notice'+(dt?' · '+dt:''),date:stamp(),status:'Pending'});
+  } else {
+    const sel=document.getElementById('pdXfer'); const u=state.units.find(x=>x.key===(sel&&sel.value));
+    if(!u){ toast('Select a unit to transfer to'); return; }
+    state.requests.unshift({id,email:t.email,tenantName:t.name,unit:t.unit,type:'transfer',targetKey:u.key,targetLabel:u.label,title:'Transfer → '+u.label,date:stamp(),status:'Pending'});
+  }
+  saveAll(); renderPortal('requests');
   toast(kind==='moveout'?"Move-out notice submitted — we'll be in touch":'Transfer request submitted');
+}
+/* ---- owner: requests inbox ---- */
+function renderRequests(){
+  const reqs=state.requests||[];
+  const pending=reqs.filter(r=>r.status==='Pending');
+  const resolved=reqs.filter(r=>r.status!=='Pending');
+  const badge=document.getElementById('reqBadge');
+  if(badge){ badge.textContent=pending.length; badge.style.display=pending.length?'inline-flex':'none'; }
+  const sub=document.getElementById('reqSub'); if(sub) sub.textContent=pending.length?`${pending.length} pending`:'No pending requests';
+  const panel=document.getElementById('reqPanel'); if(!panel) return;
+  const card=(r,actionable)=>{
+    const isXfer=r.type==='transfer';
+    const avail=isXfer?(state.units.find(u=>u.key===r.targetKey)?.available||0):null;
+    const stuck=isXfer&&actionable&&avail<=0;
+    const desc=isXfer
+      ? `Wants to move to <b>${r.targetLabel}</b>` + (actionable?(stuck?' — <span style="color:var(--red);font-weight:700">no longer available</span>':` · <span style="color:var(--green);font-weight:700">${avail} open</span>`):'')
+      : `Preferred move-out date: <b>${r.moveDate||'not specified'}</b>`;
+    return `<div class="reqitem">
+      <div class="reqmain">
+        <div class="reqtop"><span class="reqtype ${isXfer?'x':'m'}">${isXfer?'Transfer':'Move-out'}</span><b>${r.tenantName}</b> · Unit ${r.unit}</div>
+        <div class="reqdesc">${desc}</div>
+        <div class="reqdate">${r.date}</div>
+      </div>
+      <div class="reqacts">
+        ${actionable
+          ? `<button class="btn btn-gold" style="padding:7px 13px;font-size:13px${stuck?';opacity:.45;pointer-events:none':''}" onclick="approveRequest('${r.id}')">Approve</button>
+             <button class="actbtn del" onclick="declineRequest('${r.id}')">Decline</button>`
+          : `<span class="pill ${r.status==='Approved'?'paid':'due'}">${r.status}</span>`}
+      </div></div>`;
+  };
+  panel.innerHTML =
+    (pending.length?`<div>${pending.map(r=>card(r,true)).join('')}</div>`:`<div style="color:var(--muted);padding:6px 2px">No pending requests right now.</div>`)
+    + (resolved.length?`<h3 style="margin:20px 0 6px;font-size:14px">History</h3><div>${resolved.slice(0,15).map(r=>card(r,false)).join('')}</div>`:'');
+}
+function approveRequest(id){
+  const r=(state.requests||[]).find(x=>x.id===id); if(!r||r.status!=='Pending') return;
+  const ti=state.tenants.findIndex(t=>t.email===r.email && t.unit===r.unit);
+  if(r.type==='transfer'){
+    const target=state.units.find(u=>u.key===r.targetKey);
+    if(!target||target.available<=0){ toast('That unit type is now full — cannot transfer'); return; }
+    if(ti>=0){
+      const t=state.tenants[ti];
+      const oldU=state.units.find(u=>u.key===t.key); if(oldU) oldU.available=Math.min(oldU.total,oldU.available+1);
+      target.available=Math.max(0,target.available-1);
+      t.key=target.key; t.size=target.label; t.rent=target.price; t.unit=genUnitId(target.key);
+      delete t._dash;
+    }
+    r.status='Approved'; saveAll(); renderAll();
+    toast('Transfer approved — tenant moved');
+  } else {
+    if(ti>=0){
+      const t=state.tenants[ti];
+      const u=state.units.find(x=>x.key===t.key); if(u) u.available=Math.min(u.total,u.available+1);
+      state.tenants.splice(ti,1);
+    }
+    r.status='Approved'; saveAll(); renderAll();
+    toast('Move-out approved — unit is now available');
+  }
+}
+function declineRequest(id){
+  const r=(state.requests||[]).find(x=>x.id===id); if(!r) return;
+  r.status='Declined'; saveAll(); renderAll(); toast('Request declined');
 }
 function downloadBlob(filename,html){ const blob=new Blob([html],{type:'text/html'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500); }
 function docShell(title,inner){ return `<!doctype html><html><head><meta charset="utf-8"><title>${title}</title>
@@ -2439,10 +2532,12 @@ function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg
     try{
       const u=await Store.get('steelhead:units');
       const t=await Store.get('steelhead:tenants');
+      const rq=await Store.get('steelhead:requests');
       const m=await Store.get('steelhead:meta');
       let changed=false;
       if(u&&u.length){ state.units=u; changed=true; }
       if(t&&t.length){ state.tenants=t; changed=true; }
+      if(rq&&rq.length){ state.requests=rq; changed=true; }
       if(m){ state.updated=m; changed=true; }
       if(changed) renderAll();
     }catch(e){}
