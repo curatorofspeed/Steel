@@ -31,6 +31,8 @@ create table if not exists tenants (
   gate_code   text,
   address     text,
   contact2    jsonb,
+  vehicle     jsonb,
+  pw_hash     text,
   notes       text,
   autopay     boolean     not null default false,
   lease_start text,

@@ -1,13 +1,13 @@
 // POST /api/reserve
 // { unitKey, name, email, phone }
 
-const { preflight, db, genGate, genUnitId } = require('./_lib');
+const { preflight, db, genGate, genUnitId, sha256 } = require('./_lib');
 
 module.exports = async (req, res) => {
   if (preflight(req, res)) return;
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { unitKey, name, email, phone, address, contact2, vehicle } = req.body || {};
+  const { unitKey, name, email, phone, address, contact2, vehicle, password } = req.body || {};
   if (!unitKey || !name || !email)
     return res.status(400).json({ error: 'unitKey, name and email required' });
 
@@ -37,6 +37,7 @@ module.exports = async (req, res) => {
     size: unit.label, unit_key: unitKey, rent: unit.price,
     balance: 0, due_date: dueDate, status: 'Paid', gate_code: gate,
     address: address || null, contact2: contact2 || null, vehicle: vehicle || null,
+    pw_hash: password ? sha256(password) : null,
   }, { onConflict: 'unit' });
 
   // Log reservation

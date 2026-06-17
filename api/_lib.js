@@ -1,6 +1,8 @@
 // Shared utilities — underscore prefix means Vercel won't expose this as a route
 const { createClient } = require('@supabase/supabase-js');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const sha256 = (str) => crypto.createHash('sha256').update(String(str)).digest('hex');
 
 // ── CORS ──────────────────────────────────────────────────────────
 function cors(res) {
@@ -56,4 +58,4 @@ const genUnitId = (key) => {
   return pre + (Math.floor(Math.random() * 89) + 10);
 };
 
-module.exports = { cors, preflight, db, sign, verifyToken, verifyOwner, verifyTenant, genGate, genUnitId };
+module.exports = { sha256, cors, preflight, db, sign, verifyToken, verifyOwner, verifyTenant, genGate, genUnitId };

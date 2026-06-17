@@ -2,13 +2,13 @@
 // { type:'owner', passcode }  →  { token, role:'owner' }
 // { type:'tenant', query }    →  { token, tenant }
 
-const { preflight, db, sign } = require('./_lib');
+const { preflight, db, sign, sha256 } = require('./_lib');
 
 module.exports = async (req, res) => {
   if (preflight(req, res)) return;
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { type, passcode, query } = req.body || {};
+  const { type, passcode, query, password } = req.body || {};
 
   // ── Owner ────────────────────────────────────────────────────
   if (type === 'owner') {
@@ -29,6 +29,7 @@ module.exports = async (req, res) => {
       .limit(1)
       .single();
     if (error || !data) return res.status(404).json({ error: 'No account found' });
+    if (data.pw_hash) { if (!password || sha256(password) !== data.pw_hash) return res.status(401).json({ error: 'Incorrect email or password' }); }
     return res.json({
       token: sign({ role: 'tenant', tenantId: data.id, unit: data.unit }, '24h'),
       tenant: serialize(data),

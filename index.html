@@ -1479,7 +1479,7 @@ const API = {
   async saveTenants(tenants){ if(!this._jwt) return false; try{ const r=await fetch('/api/tenants',{method:'POST',headers:this.h(),body:JSON.stringify(tenants)}); return r.ok; }catch(e){ return false; } },
 
   async ownerAuth(passcode){ try{ const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'owner',passcode})}); if(!r.ok) return false; const d=await r.json(); this._jwt=d.token; return true; }catch(e){ return false; } },
-  async tenantAuth(query){ try{ const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'tenant',query})}); if(!r.ok) return null; const d=await r.json(); this._tenantJwt=d.token; return d.tenant; }catch(e){ return null; } },
+  async tenantAuth(query,password){ try{ const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'tenant',query,password})}); if(!r.ok) return null; const d=await r.json(); this._tenantJwt=d.token; return d.tenant; }catch(e){ return null; } },
 
   async reserve(data){ try{ const r=await fetch('/api/reserve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); return r.ok? await r.json():null; }catch(e){ return null; } },
   async createPaymentIntent(amountCents,unit){ try{ const r=await fetch('/api/payment-intent',{method:'POST',headers:this.th(),body:JSON.stringify({amountCents,unit})}); return r.ok? await r.json():null; }catch(e){ return null; } },
@@ -1499,11 +1499,11 @@ const DEFAULT_UNITS = [
   {key:'container', label:'Container 8×16×7.5', price:120, total:8, available:5, type:'container', desc:'Wind and water tight containers for all your storage needs.'}
 ];
 const DEFAULT_TENANTS = [
-  {unit:'B14', name:'John Smith',   size:'10×15', rent:169, balance:0,   due:'Jun 1, 2026', status:'Paid', email:'john.smith@email.com', gate:'4821*', key:'10x15'},
-  {unit:'A03', name:'Maria Lopez',  size:'10×20', rent:135, balance:135, due:'Jun 1, 2026', status:'Past Due', email:'maria.lopez@email.com', gate:'2093*', key:'10x20'},
-  {unit:'C09', name:'Dale Reed',    size:'10×30', rent:205, balance:0,   due:'Jun 5, 2026', status:'Paid', email:'dale.reed@email.com', gate:'7715*', key:'10x30'},
-  {unit:'D04', name:'Lana Pierce',  size:'12×33', rent:260, balance:520, due:'May 1, 2026', status:'Past Due', email:'lana.pierce@email.com', gate:'3360*', key:'12x33'},
-  {unit:'RV12',name:'Sam Carter',   size:'RV',    rent:85,  balance:0,   due:'Jun 1, 2026', status:'Paid', email:'sam.carter@email.com', gate:'5582*', key:'rv'}
+  {unit:'B14', name:'John Smith',   size:'10×15', rent:169, balance:0,   due:'Jun 1, 2026', status:'Paid', email:'john.smith@email.com', gate:'4821*', key:'10x15', pw:'demo1234'},
+  {unit:'A03', name:'Maria Lopez',  size:'10×20', rent:135, balance:135, due:'Jun 1, 2026', status:'Past Due', email:'maria.lopez@email.com', gate:'2093*', key:'10x20', pw:'demo1234'},
+  {unit:'C09', name:'Dale Reed',    size:'10×30', rent:205, balance:0,   due:'Jun 5, 2026', status:'Paid', email:'dale.reed@email.com', gate:'7715*', key:'10x30', pw:'demo1234'},
+  {unit:'D04', name:'Lana Pierce',  size:'12×33', rent:260, balance:520, due:'May 1, 2026', status:'Past Due', email:'lana.pierce@email.com', gate:'3360*', key:'12x33', pw:'demo1234'},
+  {unit:'RV12',name:'Sam Carter',   size:'RV',    rent:85,  balance:0,   due:'Jun 1, 2026', status:'Paid', email:'sam.carter@email.com', gate:'5582*', key:'rv', pw:'demo1234'}
 ];
 const BILLING_CFG = { dueDay:1, lateAfterDays:7, lateFeePct:0.20 };
 const DEFAULT_REVIEWS = [
@@ -1872,6 +1872,7 @@ function openReserve(key){
        <div class="fld row"><div><label>Contact name</label><input id="r2Name" placeholder="Emergency / alt contact"></div><div><label>Relationship</label><input id="r2Rel" placeholder="Spouse, family…"></div></div>
        <div class="fld row"><div><label>Contact phone</label><input id="r2Phone" placeholder="509-555-0188"></div><div><label>Contact email</label><input id="r2Email" type="email" placeholder="optional"></div></div>
      </div>
+     <div class="fld row"><div><label>Create password</label><input id="rPw" type="password" placeholder="At least 6 characters"></div><div><label>Confirm password</label><input id="rPw2" type="password" placeholder="Re-type password"></div></div>
      <div id="rErr" class="err" style="display:none">Please enter your name, email, and phone.</div>
    </div>
    <div class="modal-foot"><button class="btn btn-line" onclick="closeModal()">Cancel</button><button class="btn btn-gold" onclick="submitReserve('${key}')">Confirm Reservation</button></div>`);
@@ -1894,9 +1895,13 @@ async function submitReserve(key){
   const storingVeh=document.getElementById('rVeh') && document.getElementById('rVeh').checked;
   if(storingVeh && !val('rvVin')){ const e=document.getElementById('rErr'); e.textContent="Please enter the VIN for the vehicle you're storing."; e.style.display='block'; return; }
   const vehicle = storingVeh ? {type:val('rvType'), ymm:val('rvYMM'), vin:val('rvVin').toUpperCase(), plate:val('rvPlate').toUpperCase()} : null;
-  const extra={ phone, address:addr, contact2, vehicle };
+  const pw=(document.getElementById('rPw')||{}).value||'', pw2=(document.getElementById('rPw2')||{}).value||'';
+  if(pw.length<6){ const e=document.getElementById('rErr'); e.textContent='Please create a password of at least 6 characters.'; e.style.display='block'; return; }
+  if(pw!==pw2){ const e=document.getElementById('rErr'); e.textContent='Passwords do not match.'; e.style.display='block'; return; }
+  const pwHash=await sha256(pw);
+  const extra={ phone, address:addr, contact2, vehicle, pwHash };
   // Phase 2: call API
-  const apiResult=await API.reserve({unitKey:key,name,email,phone,address:addr,contact2,vehicle});
+  const apiResult=await API.reserve({unitKey:key,name,email,phone,address:addr,contact2,vehicle,password:pw});
   if(apiResult){
     u.available--;
     state.tenants.push({unit:apiResult.unit,name,email,size:u.label,rent:apiResult.rent||u.price,balance:0,due:apiResult.due,status:'Paid',gate:apiResult.gate,key,...extra});
@@ -1941,30 +1946,50 @@ function submitWaitlist(){ if(!val('wName')||!val('wEmail')){ toast('Enter your 
 let portalIdx=null;
 function openPortal(){
   openModalHTML(`
-   <div class="modal-head"><div><h3>Tenant Portal</h3><div class="ms">Manage your account, billing & gate code</div></div><button class="x" onclick="closeModal()">×</button></div>
+   <div class="modal-head"><div><h3>Tenant Portal</h3><div class="ms">Sign in to manage your account</div></div><button class="x" onclick="closeModal()">×</button></div>
    <div class="modal-body">
-     <div class="fld"><label>Email or Unit #</label><input id="plogin" placeholder="you@email.com or B14"></div>
-     <div id="ploginErr" class="err" style="display:none">No account found — check the email or unit number on file.</div>
-     <div style="font-size:12px;color:var(--muted);background:#f6f8fa;border:1px solid var(--line-2);border-radius:9px;padding:10px 12px">Demo: <b>john.smith@email.com</b> · or unit <b>A03</b> (has a balance to pay)</div>
+     <div class="fld"><label>Email</label><input id="plEmail" type="email" placeholder="you@email.com"></div>
+     <div class="fld"><label>Password</label><input id="plPass" type="password" placeholder="••••••••"></div>
+     <div id="ploginErr" class="err" style="display:none">Incorrect email or password.</div>
+     <button class="lnk" style="font-size:12.5px;margin-bottom:10px" onclick="forgotPw()">Forgot password?</button>
+     <div style="font-size:12px;color:var(--muted);background:#f6f8fa;border:1px solid var(--line-2);border-radius:9px;padding:10px 12px">Demo login: <b>john.smith@email.com</b> · password <b>demo1234</b></div>
    </div>
    <div class="modal-foot"><button class="btn btn-line" onclick="closeModal()">Cancel</button><button class="btn btn-navy" onclick="portalLogin()">Sign In</button></div>`);
-  setTimeout(()=>{ const e=document.getElementById('plogin'); if(e){ e.focus(); e.onkeydown=ev=>{ if(ev.key==='Enter')portalLogin(); }; } },40);
+  setTimeout(()=>{ const e=document.getElementById('plEmail'); if(e){ e.focus(); } const p=document.getElementById('plPass'); if(p){ p.onkeydown=ev=>{ if(ev.key==='Enter')portalLogin(); }; } },40);
 }
+function showLoginErr(msg){ const e=document.getElementById('ploginErr'); if(e){ e.textContent=msg; e.style.display='block'; } }
+async function sha256(str){
+  try{ if(window.crypto&&crypto.subtle){ const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str)); return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join(''); } }catch(e){}
+  let h=5381; for(let i=0;i<str.length;i++){ h=((h<<5)+h)+str.charCodeAt(i); h|=0; } return 'fb'+(h>>>0).toString(16);
+}
+async function verifyPw(t,input){ if(t.pwHash) return (await sha256(input))===t.pwHash; if(t.pw!=null) return input===t.pw; return false; }
 async function portalLogin(){
-  const v=val('plogin').toLowerCase();
-  // Try real API auth (Phase 2)
-  const apiTenant=await API.tenantAuth(v);
+  const em=val('plEmail').toLowerCase(), pw=(document.getElementById('plPass')||{}).value||'';
+  if(!em||!pw){ showLoginErr('Enter your email and password.'); return; }
+  // Try real API auth (Phase 2 — verifies server-side)
+  const apiTenant=await API.tenantAuth(em, pw);
   if(apiTenant){
-    let i=state.tenants.findIndex(t=>(t.email||'').toLowerCase()===v||(t.unit||'').toLowerCase()===v);
+    let i=state.tenants.findIndex(t=>(t.email||'').toLowerCase()===em);
     const norm={...apiTenant,due:apiTenant.due||apiTenant.due_date,gate:apiTenant.gate||apiTenant.gate_code};
     if(i<0){ state.tenants.push(norm); i=state.tenants.length-1; }
     else { state.tenants[i]={...state.tenants[i],...norm}; }
     portalIdx=i; renderPortal(); return;
   }
-  // Fallback: local lookup
-  const i=state.tenants.findIndex(t=>(t.email||'').toLowerCase()===v||(t.unit||'').toLowerCase()===v);
-  if(i<0){ document.getElementById('ploginErr').style.display='block'; return; }
+  // Local verify
+  const i=state.tenants.findIndex(t=>(t.email||'').toLowerCase()===em);
+  if(i<0){ showLoginErr('Incorrect email or password.'); return; }
+  if(!(state.tenants[i].pw!=null || state.tenants[i].pwHash)){ showLoginErr('No password is set for this account — contact the office at 509-304-9509.'); return; }
+  if(!(await verifyPw(state.tenants[i], pw))){ showLoginErr('Incorrect email or password.'); return; }
   portalIdx=i; renderPortal();
+}
+function forgotPw(){
+  openModalHTML(`
+   <div class="modal-head"><div><h3>Reset password</h3><div class="ms">We'll help you get back in</div></div><button class="x" onclick="closeModal()">×</button></div>
+   <div class="modal-body">
+     <p style="font-size:14px;color:#33414f;line-height:1.55">To reset your password, please call or text the office at <b><a href="tel:5093049509">509-304-9509</a></b> and we'll set a temporary password for you.</p>
+     <p style="font-size:12.5px;color:var(--muted);margin-top:10px">Once the backend email service is connected, a secure reset link will be emailed to you automatically.</p>
+   </div>
+   <div class="modal-foot"><button class="btn btn-navy" onclick="openPortal()">Back to sign in</button></div>`);
 }
 function tenantDash(t){
   if(t._dash) return t._dash;
@@ -2276,18 +2301,21 @@ function tenantForm(t,editIndex){
      <div class="fld"><label>Unit type</label><select id="tSize" onchange="syncRent()">${sizes}</select></div>
      <div class="fld row"><div><label>Rent ($/mo)</label><input id="tRent" type="number" value="${t?t.rent:state.units[0].price}"></div><div><label>Balance ($)</label><input id="tBal" type="number" value="${t?t.balance:0}"></div></div>
      <div class="fld"><label>Next due</label><input id="tDue" value="${t?t.due:nextDueDate()}"></div>
+     <div class="fld"><label>${t?'Reset password (optional)':'Password'}</label><input id="tPass" type="text" placeholder="${t?'Leave blank to keep current':'Set a tenant password'}"></div>
    </div>
    <div class="modal-foot"><button class="btn btn-line" onclick="closeModal()">Cancel</button><button class="btn btn-navy" onclick="submitTenant(${editIndex==null?'null':editIndex})">${t?'Save changes':'Add tenant'}</button></div>`);
 }
 function syncRent(){ const s=document.getElementById('tSize'),o=s.options[s.selectedIndex]; document.getElementById('tRent').value=o.dataset.rent; }
 function openAddTenant(){ tenantForm(null,null); }
 function openEditTenant(i){ tenantForm(state.tenants[i],i); }
-function submitTenant(i){
+async function submitTenant(i){
   const s=document.getElementById('tSize'),o=s.options[s.selectedIndex];
   const rec={ unit:val('tUnit')||genUnitId(o.dataset.key), name:val('tName')||'Tenant', email:val('tEmail'),
     size:s.value, key:o.dataset.key, rent:+document.getElementById('tRent').value||0,
     balance:+document.getElementById('tBal').value||0, due:val('tDue')||nextDueDate(), gate:val('tGate')||genGate() };
   rec.status=rec.balance>0?'Past Due':'Paid';
+  const pwv=val('tPass');
+  if(pwv){ rec.pwHash=await sha256(pwv); rec.pw=null; }
   if(i==null) state.tenants.push(rec); else state.tenants[i]={...state.tenants[i],...rec};
   saveAll(); renderOwner(); closeModal(); toast(i==null?'Tenant added':'Tenant updated');
 }
