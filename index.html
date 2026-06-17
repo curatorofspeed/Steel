@@ -1307,7 +1307,7 @@
   <div id="gate" class="gatebox">
     <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="1.7" style="margin:0 auto 12px"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>
     <h3>Owner Console</h3>
-    <p>Storage OS · Steelhead Storage<br><span style="font-size:11.5px">Demo passcode: <b>2026</b></span></p>
+    <p>Storage OS · Steelhead Storage</p>
     <input id="gatePin" type="password" maxlength="8" placeholder="• • • •" onkeydown="if(event.key==='Enter')tryGate()">
     <button class="btn btn-navy" style="width:100%" onclick="tryGate()">Sign In</button>
     <div id="gateErr" class="err" style="display:none">Incorrect passcode.</div>
@@ -1626,7 +1626,7 @@ async function tryGate(){
     return;
   }
   // Fallback: local passcode check (static / no-backend deploy)
-  if(v==='2026'){
+  if(v==='1313'){
     document.getElementById('gate').style.display='none';
     document.getElementById('console').style.display='block';
   } else {
