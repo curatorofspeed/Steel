@@ -29,6 +29,8 @@ create table if not exists tenants (
   due_date    text,
   status      text        not null default 'Paid',
   gate_code   text,
+  address     text,
+  contact2    jsonb,
   notes       text,
   autopay     boolean     not null default false,
   lease_start text,

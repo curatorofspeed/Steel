@@ -819,7 +819,9 @@
      display:none;align-items:center;justify-content:center;padding:20px}
   .modal-bg.show{display:flex}
   .modal{background:#fff;border-radius:18px;width:100%;max-width:460px;box-shadow:var(--shadow-lg);
-     max-height:92vh;overflow:auto;animation:pop .25s cubic-bezier(.2,.8,.25,1)}
+     max-height:92vh;overflow:auto;animation:pop .25s cubic-bezier(.2,.8,.25,1);display:flex;flex-direction:column}
+  .modal-head,.modal-body,.modal-foot{flex:none;width:100%}
+  .modal-body{flex:1 1 auto;min-height:0}
   .modal.wide{max-width:660px}
   @keyframes pop{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
   .modal-head{padding:22px 24px 0;display:flex;align-items:flex-start;justify-content:space-between}
@@ -884,6 +886,38 @@
   .reqdesc{font-size:13px;color:#475467;margin-top:4px}
   .reqdate{font-size:11.5px;color:var(--muted);margin-top:3px}
   .reqacts{display:flex;gap:8px;align-items:center;flex:none}
+  .pill.duemild{background:#fdeee0;color:#9a6a16}
+  /* reviews */
+  .reviews{background:#fff;border-top:1px solid var(--line)}
+  .rev-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:10px}
+  .rev{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .rev .stars{color:var(--gold);font-size:15px;letter-spacing:2px}
+  .rev p{margin:10px 0 14px;font-size:14.5px;line-height:1.6;color:#33414f}
+  .rev .who{font-weight:800;font-size:14px}
+  .rev .loc{font-size:12.5px;color:var(--muted)}
+  @media(max-width:760px){.rev-grid{grid-template-columns:1fr}}
+  /* billing toolbar */
+  .billbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+  .billbar .bcfg{font-size:12px;color:var(--muted);margin-left:auto;text-align:right}
+  .bbtn{font-size:12.5px;font-weight:700;padding:8px 13px;border-radius:8px;border:1px solid var(--line-2);background:#fff;color:var(--navy);transition:.15s}
+  .bbtn:hover{border-color:var(--gold)}
+  .bbtn.prime{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .bbtn.warn{background:#fff4e6;border-color:#f0d6a8;color:#9a6a16}
+  .blogrow{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:9px 0;border-top:1px solid var(--line-2)}
+  .blogrow:first-child{border-top:none}
+  .blogrow .ba{font-weight:700}.blogrow .bd{color:var(--muted)}
+  /* lease e-sign */
+  .leasebox{max-height:220px;overflow:auto;border:1px solid var(--line-2);border-radius:10px;padding:14px 16px;font-size:13px;line-height:1.6;color:#33414f;background:#fafbfc;margin-bottom:14px}
+  .leasebox h5{font-size:13px;font-weight:800;margin:10px 0 4px;color:var(--navy)}
+  .sigline{font-family:'Brush Script MT','Snell Roundhand',cursive;font-size:27px;color:#16263b;border-bottom:2px solid var(--navy);padding:6px 2px;min-height:42px}
+  .chkrow{display:flex;gap:9px;align-items:flex-start;margin:12px 0;font-size:13px;color:#33414f}
+  .chkrow input{margin-top:2px}
+  .rev-admin{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line-2)}
+  .rev-admin:first-of-type{border-top:none}
+  .t2c{margin:10px 0 4px;padding:10px 12px;background:#f6f8fa;border:1px solid var(--line-2);border-radius:9px;font-size:13px}
+  .t2c .t2lbl{font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#54627a;margin-bottom:3px}
+  .t2c .t2sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .resv-meta{font-size:13px;font-weight:700;color:var(--navy);background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:9px 12px;margin-bottom:14px}
   .actbtn.pay:hover{background:#27894e}
   .actbtn.del:hover{border-color:var(--red);color:var(--red)}
   .stepper{display:inline-flex;align-items:center;gap:0;border:1px solid var(--line-2);border-radius:8px;overflow:hidden}
@@ -1134,6 +1168,12 @@
       </div>
     </section></div>
 
+    <div class="reviews"><section class="wrap">
+      <div class="eyebrow" style="text-align:center">★ What Our Tenants Say</div>
+      <h2 style="text-align:center">Trusted by Your Neighbors</h2>
+      <div class="rev-grid" id="revGrid"></div>
+    </section></div>
+
     <div class="steps"><section class="wrap">
       <h2>Ready To Rent?</h2>
       <div class="steps-grid">
@@ -1284,6 +1324,7 @@
       <a class="navitem" data-ov="units"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v16"/></svg>Units</a>
       <a class="navitem" data-ov="tenants"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M16 8a3 3 0 010 6"/></svg>Tenants &amp; Billing</a>
       <a class="navitem" data-ov="requests"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H7l-3 3z"/><path d="M8 9h8M8 12h5"/></svg>Requests<span class="navbadge" id="reqBadge" style="display:none">0</span></a>
+      <a class="navitem" data-ov="reviews"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg>Reviews</a>
       <a class="navitem" data-ov="cameras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 7a2 2 0 012-2h9a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2z"/><path d="M15 10l5-3v10l-5-3z"/></svg>Cameras</a>
       <a class="navitem" data-ov="updates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>PDF Updates</a>
       <div class="facility">
@@ -1327,13 +1368,29 @@
       <!-- TENANTS -->
       <div class="ov" id="ov-tenants">
         <div class="main-head"><h1>Tenants &amp; Billing</h1><span class="sub" id="tenantCount"></span><button class="ghostadd" style="margin-left:auto" onclick="openAddTenant()">＋ Add Tenant</button></div>
-        <div class="panel"><table class="tbl"><thead><tr><th>Unit</th><th>Tenant</th><th>Size</th><th>Rent</th><th>Balance</th><th>Next Due</th><th>Status</th><th></th></tr></thead><tbody id="tenantTable"></tbody></table></div>
+        <div class="panel">
+          <div class="billbar">
+            <button class="bbtn prime" onclick="runBilling()">Run Monthly Billing</button>
+            <button class="bbtn warn" onclick="applyLateFees()">Apply Late Fees</button>
+            <button class="bbtn" onclick="runAutopay()">Run Autopay</button>
+            <button class="bbtn" onclick="simulateNextMonth()">Simulate Next Month ▸</button>
+            <span class="bcfg" id="billCfg"></span>
+          </div>
+          <table class="tbl"><thead><tr><th>Unit</th><th>Tenant</th><th>Size</th><th>Rent</th><th>Balance</th><th>Next Due</th><th>Status</th><th></th></tr></thead><tbody id="tenantTable"></tbody></table>
+        </div>
+        <div class="panel"><h3>Billing Activity</h3><p class="ph-sub">A log of billing runs, late fees, and payments. In demo mode this simulates your monthly cycle.</p><div id="billLog"></div></div>
       </div>
 
       <!-- REQUESTS -->
       <div class="ov" id="ov-requests">
         <div class="main-head"><h1>Tenant Requests</h1><span class="sub" id="reqSub"></span></div>
         <div class="panel" id="reqPanel"></div>
+      </div>
+
+      <!-- REVIEWS -->
+      <div class="ov" id="ov-reviews">
+        <div class="main-head"><h1>Reviews</h1><span class="sub">Shown on the public homepage.</span><button class="ghostadd" style="margin-left:auto" onclick="openEditReview(-1)">＋ Add Review</button></div>
+        <div class="panel" id="revAdmin"></div>
       </div>
 
       <!-- UPDATES -->
@@ -1448,6 +1505,20 @@ const DEFAULT_TENANTS = [
   {unit:'D04', name:'Lana Pierce',  size:'12×33', rent:260, balance:520, due:'May 1, 2026', status:'Past Due', email:'lana.pierce@email.com', gate:'3360*', key:'12x33'},
   {unit:'RV12',name:'Sam Carter',   size:'RV',    rent:85,  balance:0,   due:'Jun 1, 2026', status:'Paid', email:'sam.carter@email.com', gate:'5582*', key:'rv'}
 ];
+const BILLING_CFG = { dueDay:1, lateAfterDays:7, lateFeePct:0.20 };
+const DEFAULT_REVIEWS = [
+  {name:'Karen M.', loc:'Cle Elum, WA', rating:5, text:'Clean, secure, and the gate access hours are perfect for my schedule. The online portal makes paying rent so easy. Highly recommend!'},
+  {name:'Tom B.', loc:'Roslyn, WA', rating:5, text:'I store my boat and RV here year-round. Wide aisles, easy to maneuver, and they keep the snow cleared all winter. Great family-run operation.'},
+  {name:'Diane R.', loc:'Suncadia, WA', rating:5, text:'Reserved a unit online and moved in the same day. Friendly service and the facility is well-lit and well-maintained. Couldn\'t ask for more.'}
+];
+const LEASE_TERMS = [
+  ['1. Term','This is a month-to-month self-storage rental agreement between Steelhead Storage LLC ("Operator") and the tenant ("Occupant"). It renews automatically each month until terminated by either party with written notice.'],
+  ['2. Rent & Payment','Rent is due on the 1st of each month. A late fee of 20% of the monthly rent is applied to balances unpaid 7 days after the due date. Payment may be made online through the tenant portal.'],
+  ['3. Use of Space','The space shall be used only for storage of personal property. No hazardous, perishable, illegal, or living items may be stored. The Occupant may not live in or conduct business from the unit.'],
+  ['4. Access','Gate access is available daily from 6:00 AM to 11:00 PM via the Occupant\'s personalized gate code. The office is staffed Tuesday through Saturday, 9:00 AM to 5:00 PM.'],
+  ['5. Insurance & Liability','The Occupant is responsible for insuring their stored property. Operator is not liable for loss or damage to stored items except as required by law.'],
+  ['6. Termination & Lien','Either party may terminate with proper written notice. Operator reserves the right to enforce a lien on stored property for unpaid rent in accordance with Washington state law (RCW 19.150).']
+];
 const FEATURES = [
   ['shield','24/7 Video Surveillance','Your belongings are always protected.'],
   ['lock','Code Operated Gate','Secure access with personalized entry codes.'],
@@ -1468,7 +1539,7 @@ const boxSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
 const rvSVG  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="14" height="9" rx="1"/><path d="M16 10h3l3 3v3h-6z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>';
 const ctSVG  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="10" rx="1"/><path d="M7 7v10M11 7v10M15 7v10"/></svg>';
 
-let state = {units:[],tenants:[],requests:[],updated:{avail:null,ten:null}};
+let state = {units:[],tenants:[],requests:[],reviews:[],billingLog:[],billDate:null,updated:{avail:null,ten:null}};
 
 /* ---------------- app switching ---------------- */
 function switchApp(app){
@@ -1574,6 +1645,7 @@ function renderFeatures(){
     <h4>${f[1]}</h4><p>${f[2]}</p></div>`).join('');
 }
 function renderPublic(){
+  renderReviews();
   const units = state.units.filter(u=>u.type==='unit');
   const cards = units.map(u=>{
     const c=availClass(u), full=u.available<=0;
@@ -1626,7 +1698,7 @@ function renderOwner(){
   }).join('');
   const due=tenants.filter(t=>+t.balance>0);
   document.getElementById('dashDue').innerHTML = due.length?due.map(t=>`
-    <tr style="cursor:pointer" onclick="openUnitDetail(${state.tenants.indexOf(t)})"><td data-label="Unit"><b>${t.unit}</b></td><td data-label="Tenant">${t.name}</td><td data-label="Balance" class="mono" style="color:var(--red);font-weight:700">${fmtMoney(t.balance)}</td><td data-label="Status"><span class="pill due">Past Due</span></td></tr>`).join('')
+    <tr style="cursor:pointer" onclick="openUnitDetail(${state.tenants.indexOf(t)})"><td data-label="Unit"><b>${t.unit}</b></td><td data-label="Tenant">${t.name}</td><td data-label="Balance" class="mono" style="color:var(--red);font-weight:700">${fmtMoney(t.balance)}</td><td data-label="Status"><span class="pill ${statusOf(t).cls}">${statusOf(t).label}</span></td></tr>`).join('')
     : `<tr><td colspan="4" style="color:var(--muted)">All accounts current. 🎉</td></tr>`;
   document.getElementById('dashUpdated').textContent = state.updated.ten||state.updated.avail? ('Last update: '+(state.updated.ten||state.updated.avail)) : 'No PDF uploads yet';
 
@@ -1639,7 +1711,7 @@ function renderOwner(){
   document.getElementById('tenantTable').innerHTML=tenants.map((t,i)=>`
     <tr><td data-label="Unit"><b style="color:#3a72c2;cursor:pointer" onclick="openUnitDetail(${i})">${t.unit}</b></td><td data-label="Tenant">${t.name}</td><td data-label="Size">${t.size}</td><td data-label="Rent" class="mono">${fmtMoney(t.rent)}</td>
     <td data-label="Balance" class="mono" style="${+t.balance>0?'color:var(--red);font-weight:700':''}">${fmtMoney(t.balance)}</td>
-    <td data-label="Next Due">${t.due}</td><td data-label="Status"><span class="pill ${+t.balance>0?'due':'paid'}">${+t.balance>0?'Past Due':'Paid'}</span></td>
+    <td data-label="Next Due">${t.due}</td><td data-label="Status"><span class="pill ${statusOf(t).cls}">${statusOf(t).label}</span></td>
     <td data-label="">
       <div class="rowacts">
       <button class="actbtn" onclick="openUnitDetail(${i})">View ▸</button>
@@ -1648,7 +1720,116 @@ function renderOwner(){
       <button class="actbtn del" onclick="removeTenant(${i})">✕</button>
     </div></td></tr>`).join('');
   renderRequests();
+  renderBilling();
+  renderReviewsAdmin();
 }
+function statusOf(t){ if(+t.balance<=0) return {label:'Paid',cls:'paid'}; return t._lateCycle?{label:'Past Due',cls:'due'}:{label:'Due',cls:'duemild'}; }
+
+/* ---------- reviews ---------- */
+function starStr(n){ n=Math.max(0,Math.min(5,n|0)); return '★★★★★'.slice(0,n)+'☆☆☆☆☆'.slice(0,5-n); }
+function renderReviews(){
+  const g=document.getElementById('revGrid'); if(!g) return;
+  const list=(state.reviews&&state.reviews.length)?state.reviews:DEFAULT_REVIEWS;
+  g.innerHTML=list.slice(0,6).map(r=>`<div class="rev"><div class="stars">${starStr(r.rating)}</div><p>"${r.text}"</p><div class="who">${r.name}</div><div class="loc">${r.loc||''}</div></div>`).join('');
+}
+function renderReviewsAdmin(){
+  const el=document.getElementById('revAdmin'); if(!el) return;
+  const list=state.reviews||[];
+  el.innerHTML = list.length? list.map((r,i)=>`<div class="rev-admin"><div style="flex:1"><div style="color:var(--gold)">${starStr(r.rating)}</div><div style="font-size:13.5px;color:#33414f;margin:3px 0">"${r.text}"</div><div style="font-size:12px;color:var(--muted)"><b>${r.name}</b> · ${r.loc||''}</div></div>
+     <div class="reqacts"><button class="actbtn" onclick="openEditReview(${i})">Edit</button><button class="actbtn del" onclick="removeReview(${i})">✕</button></div></div>`).join('')
+    : '<div style="color:var(--muted);padding:6px 2px">No reviews yet. Add your first one.</div>';
+}
+function openEditReview(i){
+  const r = i>=0 ? state.reviews[i] : {name:'',loc:'',rating:5,text:''};
+  openModalHTML(`
+   <div class="modal-head"><div><h3>${i>=0?'Edit':'Add'} Review</h3><div class="ms">Appears on the public homepage</div></div><button class="x" onclick="closeModal()">×</button></div>
+   <div class="modal-body">
+     <div class="fld row"><div><label>Name</label><input id="rvName" value="${r.name||''}"></div><div><label>Location</label><input id="rvLoc" value="${r.loc||''}" placeholder="Cle Elum, WA"></div></div>
+     <div class="fld"><label>Rating</label><select id="rvRate">${[5,4,3,2,1].map(n=>`<option value="${n}" ${n===r.rating?'selected':''}>${starStr(n)} (${n})</option>`).join('')}</select></div>
+     <div class="fld"><label>Review text</label><textarea id="rvText" rows="4" style="width:100%;padding:11px 12px;border:1px solid var(--line-2);border-radius:9px;font-size:14px;font-family:var(--body);resize:vertical">${r.text||''}</textarea></div>
+   </div>
+   <div class="modal-foot"><button class="btn btn-line" onclick="closeModal()">Cancel</button><button class="btn btn-navy" onclick="saveReview(${i})">Save</button></div>`);
+}
+function saveReview(i){
+  const r={name:val('rvName')||'Anonymous',loc:val('rvLoc'),rating:+document.getElementById('rvRate').value||5,text:val('rvText')};
+  if(!r.text){ toast('Add some review text'); return; }
+  if(i>=0) state.reviews[i]=r; else state.reviews.unshift(r);
+  saveAll(); renderReviews(); renderReviewsAdmin(); closeModal(); toast('Review saved');
+}
+function removeReview(i){ state.reviews.splice(i,1); saveAll(); renderReviews(); renderReviewsAdmin(); toast('Review removed'); }
+
+/* ---------- billing engine (demo: simulates the monthly cycle) ---------- */
+function billDateObj(){ return state.billDate? new Date(state.billDate) : new Date(); }
+function curCycle(){ const d=billDateObj(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function firstOfCycle(){ const d=billDateObj(); return `${MON[d.getMonth()]} 1, ${d.getFullYear()}`; }
+function blog(action,detail,amount){ state.billingLog.unshift({date:stamp(),action,detail,amount:amount||null}); if(state.billingLog.length>40)state.billingLog.length=40; }
+function renderBilling(){
+  const cfg=document.getElementById('billCfg');
+  if(cfg){ const d=billDateObj(); cfg.innerHTML=`Due on the 1st · 20% late fee after 7 days<br>Billing date: <b>${MON[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}</b>`; }
+  const lg=document.getElementById('billLog');
+  if(lg){ lg.innerHTML = state.billingLog.length? state.billingLog.slice(0,15).map(e=>`<div class="blogrow"><span><span class="ba">${e.action}</span> — <span class="bd">${e.detail}</span></span><span>${e.amount?fmtMoney(e.amount):''} <span class="bd" style="margin-left:8px">${e.date}</span></span></div>`).join('')
+    : '<div style="color:var(--muted);padding:6px 2px">No billing activity yet. Run monthly billing to begin.</div>'; }
+}
+function runBilling(){
+  const cyc=curCycle(); let n=0,tot=0;
+  state.tenants.forEach(t=>{ if(t._billedCycle===cyc) return; t.balance=(+t.balance||0)+(+t.rent||0); t.due=firstOfCycle(); t._billedCycle=cyc; t._lateCycle=null; n++; tot+=(+t.rent||0); });
+  if(n){ blog('Billing run',`Posted rent to ${n} tenant(s) for ${cyc}`,tot); }
+  saveAll(); renderOwner(); toast(n?`Billing run — ${n} tenant(s) charged`:'Everyone already billed this cycle');
+}
+function applyLateFees(){
+  const d=billDateObj(), cyc=curCycle(), lateDay=BILLING_CFG.dueDay+BILLING_CFG.lateAfterDays; let n=0,tot=0;
+  state.tenants.forEach(t=>{
+    if(+t.balance<=0 || t._lateCycle===cyc) return;
+    if(d.getDate()>=lateDay){ const fee=Math.round((+t.rent||0)*BILLING_CFG.lateFeePct); t.balance+=fee; t._lateCycle=cyc; n++; tot+=fee; }
+  });
+  if(n) blog('Late fees',`20% late fee applied to ${n} tenant(s)`,tot);
+  saveAll(); renderOwner(); toast(n?`Late fees applied to ${n}`:'No tenants are 7+ days past due');
+}
+function runAutopay(){
+  let n=0,tot=0;
+  state.tenants.forEach(t=>{ const d=tenantDash(t); const on=(t.autopay!=null?t.autopay:d.autopay); if(on && +t.balance>0){ const amt=+t.balance; tot+=amt; t.balance=0; t.status='Paid'; t._lateCycle=null; t.lastPaid=stamp(); const today=`${MON[new Date().getMonth()]} ${new Date().getDate()}, ${new Date().getFullYear()}`; d.history.unshift({date:today,amt,method:d.card,id:'PMT-'+(100000+Math.floor(Math.random()*899999))}); n++; } });
+  if(n) blog('Autopay',`Auto-charged ${n} tenant(s)`,tot);
+  saveAll(); renderOwner(); toast(n?`Autopay charged ${n} tenant(s)`:'No autopay balances due');
+}
+function simulateNextMonth(){
+  const d=billDateObj(); d.setMonth(d.getMonth()+1); d.setDate(BILLING_CFG.dueDay+BILLING_CFG.lateAfterDays+1); state.billDate=d.toISOString();
+  blog('Time advanced',`Simulating ${MON[d.getMonth()]} ${d.getFullYear()}`);
+  runBilling(); applyLateFees();
+}
+
+/* ---------- lease e-signature ---------- */
+function openLease(i){
+  const t=state.tenants[i]; if(!t){ toast('Tenant not found'); return; }
+  window._leaseIdx=i;
+  const terms=LEASE_TERMS.map(([h,b])=>`<h5>${h}</h5><div>${b}</div>`).join('');
+  openModalHTML(`
+   <div class="modal-head"><div><h3>Rental Agreement</h3><div class="ms">Unit ${t.unit} · ${t.size} · ${fmtMoney(t.rent)}/mo</div></div><button class="x" onclick="closeModal()">×</button></div>
+   <div class="modal-body">
+     <div class="leasebox">${terms}</div>
+     <div class="fld"><label>Type your full legal name to sign</label><input id="lzName" value="${t.name||''}" oninput="document.getElementById('lzSig').textContent=this.value||'\u00a0'"></div>
+     <div class="pl" style="font-size:12px;margin-bottom:4px">Signature</div>
+     <div class="sigline" id="lzSig">${t.name||'\u00a0'}</div>
+     <div class="chkrow"><input type="checkbox" id="lzAgree"><label for="lzAgree">I have read and agree to the terms of this rental agreement, and I understand this constitutes a legally binding electronic signature dated ${stamp().split(',')[0]}.</label></div>
+   </div>
+   <div class="modal-foot"><button class="btn btn-line" onclick="closeModal()">Cancel</button><button class="btn btn-gold" onclick="signLease()">Sign Agreement</button></div>`);
+  const mc=document.getElementById('modalCard'); if(mc) mc.classList.add('wide');
+}
+function signLease(){
+  const i=window._leaseIdx, t=state.tenants[i]; if(!t) return;
+  if(!document.getElementById('lzAgree').checked){ toast('Please check the agreement box to sign'); return; }
+  const sig=val('lzName'); if(!sig){ toast('Type your name to sign'); return; }
+  const today=`${MON[new Date().getMonth()]} ${new Date().getDate()}, ${new Date().getFullYear()}`;
+  t.leaseSigned=true; t.leaseSignature=sig; t.leaseSignedDate=today;
+  saveAll(); renderOwner();
+  downloadBlob('lease-'+t.unit+'-signed.html', docShell('Storage Rental Agreement — Signed',
+    LEASE_TERMS.map(([h,b])=>`<p style="margin:10px 0"><b>${h}</b><br>${b}</p>`).join('')
+    + `<div style="margin-top:24px;border-top:2px solid #cf9b34;padding-top:14px"><div class="r"><span>Tenant</span><b>${t.name}</b></div><div class="r"><span>Unit</span><b>${t.unit} — ${t.size}</b></div><div class="r"><span>Monthly rent</span><b>${fmtMoney(t.rent)}</b></div><div class="r"><span>Signed by</span><b style="font-family:cursive;font-size:18px">${sig}</b></div><div class="r"><span>Date signed</span><b>${today}</b></div></div>`));
+  openModalHTML(`<div class="modal-body" style="text-align:center;padding-top:28px">
+     <div class="succ-ic">${checkSVG}</div><h3 style="font-size:22px">Lease signed</h3>
+     <p style="color:var(--muted);margin:8px 0">Thanks, ${t.name.split(' ')[0]}. A signed copy has downloaded for your records.</p></div>
+   <div class="modal-foot"><button class="btn btn-navy" onclick="${portalIdx!=null?`renderPortal('docs')`:'closeModal()'}">Done</button></div>`);
+}
+
 function renderAll(){ renderFeatures(); renderPublic(); renderOwner(); }
 
 /* ---------------- shared helpers ---------------- */
@@ -1660,6 +1841,8 @@ async function saveAll(){
   await Store.set('steelhead:units',state.units);
   await Store.set('steelhead:tenants',state.tenants);
   await Store.set('steelhead:requests',state.requests);
+  await Store.set('steelhead:reviews',state.reviews);
+  await Store.set('steelhead:billing',{log:state.billingLog,date:state.billDate});
   await Store.set('steelhead:meta',state.updated);
   if(API._jwt){ API.saveUnits(state.units).catch(()=>{}); API.saveTenants(state.tenants).catch(()=>{}); }
 }
@@ -1674,23 +1857,49 @@ function openReserve(key){
   openModalHTML(`
    <div class="modal-head"><div><h3>Reserve ${u.label}</h3><div class="ms">${fmtMoney(u.price)}/mo · ${u.available} available</div></div><button class="x" onclick="closeModal()">×</button></div>
    <div class="modal-body">
-     <div class="summary"><div class="sl"><span>Unit type</span><b>${u.label}</b></div><div class="sl"><span>Monthly rate</span><b>${fmtMoney(u.price)}</b></div><div class="sl"><span>Term</span><b>Month-to-month</b></div></div>
+     <div class="resv-meta">${u.label} · ${fmtMoney(u.price)}/mo · Month-to-month</div>
      <div class="fld"><label>Full name</label><input id="rName" placeholder="Jane Doe"></div>
-     <div class="fld"><label>Email</label><input id="rEmail" type="email" placeholder="jane@email.com"></div>
-     <div class="fld"><label>Phone</label><input id="rPhone" placeholder="509-555-0100"></div>
-     <div id="rErr" class="err" style="display:none">Please enter your name and email.</div>
+     <div class="fld row"><div><label>Email</label><input id="rEmail" type="email" placeholder="jane@email.com"></div><div><label>Phone</label><input id="rPhone" placeholder="509-555-0100"></div></div>
+     <div class="fld"><label>Street address</label><input id="rAddr" placeholder="123 Main St"></div>
+     <div class="fld row"><div style="flex:2;min-width:0"><label>City</label><input id="rCity" placeholder="Cle Elum"></div><div style="flex:.9;min-width:0"><label>State</label><input id="rState" value="WA" maxlength="2"></div><div style="flex:1.2;min-width:0"><label>ZIP</label><input id="rZip" placeholder="98922"></div></div>
+     <label class="chkrow" style="margin:4px 0"><input type="checkbox" id="rVeh" onchange="toggleVeh()"><span>Are you storing a vehicle? <span style="color:var(--muted)">(VIN required)</span></span></label>
+     <div id="rVehBlock" style="display:none;border-top:1px solid var(--line-2);padding-top:12px;margin-top:2px">
+       <div class="fld row"><div><label>Vehicle type</label><select id="rvType">${['Car','Truck / SUV','RV / Motorhome','Trailer','Boat','Other'].map(o=>`<option>${o}</option>`).join('')}</select></div><div><label>Year / Make / Model</label><input id="rvYMM" placeholder="2018 Ford F-150"></div></div>
+       <div class="fld row"><div style="flex:1.7;min-width:0"><label>VIN #</label><input id="rvVin" placeholder="1FTEW1EP4JKE…" maxlength="17" style="text-transform:uppercase"></div><div style="flex:1;min-width:0"><label>Plate</label><input id="rvPlate" placeholder="ABC1234" style="text-transform:uppercase"></div></div>
+     </div>
+     <button type="button" class="lnk" id="r2Toggle" style="font-size:13px;margin:2px 0 4px" onclick="toggleR2()">＋ Add a second contact</button>
+     <div id="r2Block" style="display:none;border-top:1px solid var(--line-2);padding-top:12px;margin-top:4px">
+       <div class="fld row"><div><label>Contact name</label><input id="r2Name" placeholder="Emergency / alt contact"></div><div><label>Relationship</label><input id="r2Rel" placeholder="Spouse, family…"></div></div>
+       <div class="fld row"><div><label>Contact phone</label><input id="r2Phone" placeholder="509-555-0188"></div><div><label>Contact email</label><input id="r2Email" type="email" placeholder="optional"></div></div>
+     </div>
+     <div id="rErr" class="err" style="display:none">Please enter your name, email, and phone.</div>
    </div>
    <div class="modal-foot"><button class="btn btn-line" onclick="closeModal()">Cancel</button><button class="btn btn-gold" onclick="submitReserve('${key}')">Confirm Reservation</button></div>`);
+  const mc=document.getElementById('modalCard'); if(mc) mc.classList.add('wide');
 }
+function toggleR2(){
+  const b=document.getElementById('r2Block'), t=document.getElementById('r2Toggle');
+  const show=b.style.display==='none';
+  b.style.display=show?'block':'none';
+  if(t) t.textContent=show?'– Remove second contact':'＋ Add a second contact';
+}
+function toggleVeh(){ const b=document.getElementById('rVehBlock'); if(b) b.style.display=document.getElementById('rVeh').checked?'block':'none'; }
 async function submitReserve(key){
   const u=state.units.find(x=>x.key===key); if(!u||u.available<=0)return;
-  const name=val('rName'), email=val('rEmail');
-  if(!name||!email){ document.getElementById('rErr').style.display='block'; return; }
+  const name=val('rName'), email=val('rEmail'), phone=val('rPhone');
+  if(!name||!email||!phone){ const e=document.getElementById('rErr'); e.textContent='Please enter your name, email, and phone.'; e.style.display='block'; return; }
+  const addr=[val('rAddr'),val('rCity'),val('rState'),val('rZip')].filter(Boolean).join(', ');
+  const c2name=val('r2Name');
+  const contact2 = c2name ? {name:c2name, rel:val('r2Rel'), phone:val('r2Phone'), email:val('r2Email')} : null;
+  const storingVeh=document.getElementById('rVeh') && document.getElementById('rVeh').checked;
+  if(storingVeh && !val('rvVin')){ const e=document.getElementById('rErr'); e.textContent="Please enter the VIN for the vehicle you're storing."; e.style.display='block'; return; }
+  const vehicle = storingVeh ? {type:val('rvType'), ymm:val('rvYMM'), vin:val('rvVin').toUpperCase(), plate:val('rvPlate').toUpperCase()} : null;
+  const extra={ phone, address:addr, contact2, vehicle };
   // Phase 2: call API
-  const apiResult=await API.reserve({unitKey:key,name,email,phone:val('rPhone')});
+  const apiResult=await API.reserve({unitKey:key,name,email,phone,address:addr,contact2,vehicle});
   if(apiResult){
     u.available--;
-    state.tenants.push({unit:apiResult.unit,name,email,phone:val('rPhone'),size:u.label,rent:apiResult.rent||u.price,balance:0,due:apiResult.due,status:'Paid',gate:apiResult.gate,key});
+    state.tenants.push({unit:apiResult.unit,name,email,size:u.label,rent:apiResult.rent||u.price,balance:0,due:apiResult.due,status:'Paid',gate:apiResult.gate,key,...extra});
     saveAll(); renderAll();
     openModalHTML(`<div class="modal-body" style="text-align:center;padding-top:28px">
        <div class="succ-ic">${checkSVG}</div>
@@ -1698,13 +1907,13 @@ async function submitReserve(key){
        <p style="color:var(--muted);margin:8px 0 14px">${u.label} is held for ${name.split(' ')[0]}.</p>
        <div class="summary" style="text-align:left"><div class="sl"><span>Assigned unit</span><b>${apiResult.unit}</b></div><div class="sl"><span>Monthly rate</span><b>${fmtMoney(apiResult.rent||u.price)}</b></div><div class="sl"><span>First payment due</span><b>${apiResult.due}</b></div></div>
        <div class="codebox"><div class="lbl">Your Gate Code</div><div class="code">${apiResult.gate}</div></div>
-     </div><div class="modal-foot"><button class="btn btn-navy" onclick="closeModal()">Done</button></div>`);
+     </div><div class="modal-foot"><button class="btn btn-line" onclick="closeModal()">Done</button><button class="btn btn-gold" onclick="openLease(state.tenants.length-1)">Sign Lease</button></div>`);
     return;
   }
   // Fallback: local
   u.available--;
   const id=genUnitId(key), gate=genGate(), due=nextDueDate();
-  state.tenants.push({unit:id,name,email,phone:val('rPhone'),size:u.label,rent:u.price,balance:0,due,status:'Paid',gate,key});
+  state.tenants.push({unit:id,name,email,size:u.label,rent:u.price,balance:0,due,status:'Paid',gate,key,...extra});
   saveAll(); renderAll();
   openModalHTML(`<div class="modal-body" style="text-align:center;padding-top:28px">
      <div class="succ-ic">${checkSVG}</div>
@@ -1713,7 +1922,7 @@ async function submitReserve(key){
      <div class="summary" style="text-align:left"><div class="sl"><span>Assigned unit</span><b>${id}</b></div><div class="sl"><span>Monthly rate</span><b>${fmtMoney(u.price)}</b></div><div class="sl"><span>First payment due</span><b>${due}</b></div></div>
      <div class="codebox"><div class="lbl">Your Gate Code</div><div class="code">${gate}</div></div>
    </div>
-   <div class="modal-foot"><button class="btn btn-navy" onclick="closeModal()">Done</button></div>`);
+   <div class="modal-foot"><button class="btn btn-line" onclick="closeModal()">Done</button><button class="btn btn-gold" onclick="openLease(state.tenants.length-1)">Sign Lease</button></div>`);
 }
 function openWaitlist(key){ window._wlKey=key;
   const u=state.units.find(x=>x.key===key);
@@ -1796,7 +2005,7 @@ function renderPortal(tab){
 function pdOverview(t,d,due){
   return `
    <div class="summary">
-     <div class="sl"><span>Account status</span><b>${due?'<span class="pill due">PAST DUE</span>':'<span class="pill ok">PAID</span>'}</b></div>
+     <div class="sl"><span>Account status</span><b><span class="pill ${statusOf(t).cls}">${statusOf(t).label.toUpperCase()}</span></b></div>
      <div class="sl"><span>Balance due</span><b style="${due?'color:var(--red)':'color:var(--green)'}">${fmtMoney(t.balance)}</b></div>
      <div class="sl"><span>Monthly rent</span><b>${fmtMoney(t.rent)}</b></div>
      <div class="sl"><span>Next due date</span><b>${t.due}</b></div>
@@ -1820,11 +2029,24 @@ function pdBilling(t,d,due){
      ${d.history.map(h=>`<div class="prow"><div><div class="dt">${fmtMoney(h.amt)}</div><div class="ds">${h.date} · ${h.method}</div></div><button class="lnk" onclick="pdReceipt('${h.id}','${h.date}',${h.amt},'${h.method.replace(/'/g,'')}')">Receipt</button></div>`).join('')}</div>`;
 }
 function pdAccount(t,d){
+  const c2=t.contact2||{};
   return `
    <div class="pcard"><h4>Contact information</h4>
      <div style="margin-bottom:10px"><div class="pl" style="margin-bottom:4px">Email</div><input class="pd-mini" id="pdEmail" value="${t.email||''}"></div>
-     <div style="margin-bottom:12px"><div class="pl" style="margin-bottom:4px">Phone</div><input class="pd-mini" id="pdPhone" value="${d.phone||''}"></div>
+     <div style="margin-bottom:10px"><div class="pl" style="margin-bottom:4px">Phone</div><input class="pd-mini" id="pdPhone" value="${d.phone||''}"></div>
+     <div style="margin-bottom:12px"><div class="pl" style="margin-bottom:4px">Mailing address</div><input class="pd-mini" id="pdAddr" value="${t.address||''}" placeholder="Street, City, State ZIP"></div>
      <button class="btn btn-navy" style="padding:8px 14px;font-size:13px" onclick="pdSaveContact()">Save changes</button></div>
+   <div class="pcard"><h4>Second contact</h4>
+     <div class="fld row" style="margin-bottom:10px"><div><div class="pl" style="margin-bottom:4px">Name</div><input class="pd-mini" id="pd2Name" value="${c2.name||''}"></div><div><div class="pl" style="margin-bottom:4px">Relationship</div><input class="pd-mini" id="pd2Rel" value="${c2.rel||''}"></div></div>
+     <div class="fld row" style="margin-bottom:12px"><div><div class="pl" style="margin-bottom:4px">Phone</div><input class="pd-mini" id="pd2Phone" value="${c2.phone||''}"></div><div><div class="pl" style="margin-bottom:4px">Email</div><input class="pd-mini" id="pd2Email" value="${c2.email||''}"></div></div>
+     <button class="btn btn-navy" style="padding:8px 14px;font-size:13px" onclick="pdSave2()">Save second contact</button></div>
+   <div class="pcard"><h4>Vehicle on file</h4>
+     <label class="chkrow" style="margin:0 0 10px"><input type="checkbox" id="pdVehOn" ${t.vehicle?'checked':''} onchange="document.getElementById('pdVehFields').style.display=this.checked?'block':'none'"><span>I'm storing a vehicle (VIN required)</span></label>
+     <div id="pdVehFields" style="display:${t.vehicle?'block':'none'}">
+       <div class="fld row" style="margin-bottom:10px"><div><div class="pl" style="margin-bottom:4px">Type</div><input class="pd-mini" id="pdVehType" value="${(t.vehicle&&t.vehicle.type)||''}"></div><div><div class="pl" style="margin-bottom:4px">Year/Make/Model</div><input class="pd-mini" id="pdVehYMM" value="${(t.vehicle&&t.vehicle.ymm)||''}"></div></div>
+       <div class="fld row" style="margin-bottom:12px"><div><div class="pl" style="margin-bottom:4px">VIN</div><input class="pd-mini" id="pdVehVin" value="${(t.vehicle&&t.vehicle.vin)||''}" style="text-transform:uppercase"></div><div><div class="pl" style="margin-bottom:4px">Plate</div><input class="pd-mini" id="pdVehPlate" value="${(t.vehicle&&t.vehicle.plate)||''}" style="text-transform:uppercase"></div></div>
+     </div>
+     <button class="btn btn-navy" style="padding:8px 14px;font-size:13px" onclick="pdSaveVeh()">Save vehicle</button></div>
    <div class="pcard"><h4>Gate code</h4>
      <div class="prow" style="border:none;padding:2px 0"><div class="pv" style="font-size:20px;letter-spacing:.1em">${t.gate||'----'}</div><button class="lnk" onclick="pdResetGate()">Reset code</button></div></div>
    <div class="pcard"><h4>Notifications</h4>
@@ -1832,10 +2054,17 @@ function pdAccount(t,d){
      <div class="prow"><div class="pl">Text (SMS) reminders</div><div class="tgl ${d.notifySms?'on':''}" onclick="pdNotify('notifySms')"></div></div></div>`;
 }
 function pdDocs(t,d){
-  const docs=[['Lease Agreement',`Signed ${d.lease}`,'lease'],['Insurance Policy',`${d.insurer} · ${d.policy}`,'insurance'],['Current Invoice',`${t.due} · ${fmtMoney(t.rent)}`,'invoice']];
-  return `<div class="pcard"><h4>Your documents</h4>
-    ${docs.map(([name,sub,kind])=>`<div class="prow"><div><div class="dt">${name}</div><div class="ds">${sub}</div></div><button class="lnk" onclick="pdDoc('${kind}')">Download</button></div>`).join('')}</div>
-    <div style="font-size:12px;color:var(--muted);text-align:center;padding:0 6px">Documents are generated samples in demo mode.</div>`;
+  const signed=!!t.leaseSigned;
+  return `
+   <div class="pcard" style="${signed?'':'background:#fff4e6;border-color:#f0d6a8'}">
+     <h4>Lease Agreement</h4>
+     ${signed
+       ? `<div class="prow" style="border:none;padding:2px 0"><div><div class="dt">Signed ✓</div><div class="ds">${t.leaseSignedDate} · ${t.leaseSignature}</div></div><button class="lnk" onclick="pdDoc('lease')">Download</button></div>`
+       : `<div class="prow" style="border:none;padding:2px 0"><div><div class="dt" style="color:#9a6a16">Not signed yet</div><div class="ds">Review and sign your rental agreement.</div></div><button class="btn btn-gold" style="padding:7px 13px;font-size:13px" onclick="openLease(portalIdx)">Sign lease</button></div>`}
+   </div>
+   <div class="pcard"><h4>Other documents</h4>
+     ${[['Insurance Policy',`${d.insurer} · ${d.policy}`,'insurance'],['Current Invoice',`${t.due} · ${fmtMoney(t.rent)}`,'invoice']].map(([name,sub,kind])=>`<div class="prow"><div><div class="dt">${name}</div><div class="ds">${sub}</div></div><button class="lnk" onclick="pdDoc('${kind}')">Download</button></div>`).join('')}</div>
+   <div style="font-size:12px;color:var(--muted);text-align:center;padding:0 6px">Documents are generated samples in demo mode.</div>`;
 }
 function pdRequests(t,d){
   const others=state.units.filter(u=>u.key!==t.key && u.available>0);
@@ -1857,7 +2086,9 @@ function pdRequests(t,d){
 }
 function pdAutopay(){ const t=state.tenants[portalIdx],d=tenantDash(t); d.autopay=!d.autopay; t.autopay=d.autopay; saveAll(); renderPortal('billing'); toast(d.autopay?'Autopay turned on':'Autopay turned off'); }
 function pdNotify(k){ const t=state.tenants[portalIdx],d=tenantDash(t); d[k]=!d[k]; t[k]=d[k]; saveAll(); renderPortal('account'); }
-function pdSaveContact(){ const t=state.tenants[portalIdx],d=tenantDash(t); const em=val('pdEmail'),ph=val('pdPhone'); if(!em){toast('Email cannot be empty');return;} t.email=em; t.phone=ph; d.phone=ph; saveAll(); renderPortal('account'); toast('Contact info updated'); }
+function pdSaveContact(){ const t=state.tenants[portalIdx],d=tenantDash(t); const em=val('pdEmail'),ph=val('pdPhone'); if(!em){toast('Email cannot be empty');return;} t.email=em; t.phone=ph; d.phone=ph; t.address=val('pdAddr'); saveAll(); renderPortal('account'); toast('Contact info updated'); }
+function pdSave2(){ const t=state.tenants[portalIdx]; const nm=val('pd2Name'); t.contact2 = nm?{name:nm,rel:val('pd2Rel'),phone:val('pd2Phone'),email:val('pd2Email')}:null; saveAll(); renderPortal('account'); toast(nm?'Second contact saved':'Second contact cleared'); }
+function pdSaveVeh(){ const t=state.tenants[portalIdx]; const on=document.getElementById('pdVehOn').checked; if(on){ const vin=val('pdVehVin'); if(!vin){toast('VIN is required for vehicle storage');return;} t.vehicle={type:val('pdVehType'),ymm:val('pdVehYMM'),vin:vin.toUpperCase(),plate:val('pdVehPlate').toUpperCase()}; } else { t.vehicle=null; } saveAll(); renderPortal('account'); toast('Vehicle info saved'); }
 function pdResetGate(){ const t=state.tenants[portalIdx]; t.gate=genGate(); saveAll(); renderPortal('account'); toast('New gate code generated'); }
 function pdUpdateCard(){ toast('Card updates unlock once Stripe is connected'); }
 function pdRequest(kind){
@@ -2157,7 +2388,10 @@ function renderUnitDetail(){
        <div class="tcontact">
          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5l5-1 2 5-3 2a13 13 0 006 6l2-3 5 2-1 5a17 17 0 01-16-16z"/></svg>${t.phone||'(509) 555-0100'}</div>
          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>${t.email||'—'}</div>
+         ${t.address?`<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>${t.address}</div>`:''}
        </div>
+       ${t.contact2&&t.contact2.name?`<div class="t2c"><div class="t2lbl">Second contact</div><b>${t.contact2.name}</b>${t.contact2.rel?` · ${t.contact2.rel}`:''}<div class="t2sub">${[t.contact2.phone,t.contact2.email].filter(Boolean).join(' · ')||'—'}</div></div>`:''}
+       ${t.vehicle&&t.vehicle.vin?`<div class="t2c"><div class="t2lbl">Vehicle stored</div><b>${t.vehicle.ymm||t.vehicle.type}</b>${t.vehicle.ymm&&t.vehicle.type?` · ${t.vehicle.type}`:''}<div class="t2sub">VIN ${t.vehicle.vin}${t.vehicle.plate?` · Plate ${t.vehicle.plate}`:''}</div></div>`:''}
        <span class="tsince">Tenant since ${d.since}</span>
        <div class="dlink" onclick="openEditTenant(${detailIdx})">View Tenant Profile</div>
      </div>
@@ -2523,6 +2757,8 @@ function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg
 (function init(){
   state.units   = JSON.parse(JSON.stringify(DEFAULT_UNITS));
   state.tenants = JSON.parse(JSON.stringify(DEFAULT_TENANTS));
+  state.reviews = JSON.parse(JSON.stringify(DEFAULT_REVIEWS));
+  state.billingLog = []; state.billDate = null;
   state.updated = {avail:null,ten:null};
   wireDrop('dropAvail','fileAvail','avail');
   wireDrop('dropTen','fileTen','ten');
@@ -2533,11 +2769,15 @@ function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg
       const u=await Store.get('steelhead:units');
       const t=await Store.get('steelhead:tenants');
       const rq=await Store.get('steelhead:requests');
+      const rv=await Store.get('steelhead:reviews');
+      const bl=await Store.get('steelhead:billing');
       const m=await Store.get('steelhead:meta');
       let changed=false;
       if(u&&u.length){ state.units=u; changed=true; }
       if(t&&t.length){ state.tenants=t; changed=true; }
       if(rq&&rq.length){ state.requests=rq; changed=true; }
+      if(rv&&rv.length){ state.reviews=rv; changed=true; }
+      if(bl){ if(bl.log)state.billingLog=bl.log; if(bl.date)state.billDate=bl.date; changed=true; }
       if(m){ state.updated=m; changed=true; }
       if(changed) renderAll();
     }catch(e){}

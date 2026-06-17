@@ -49,7 +49,7 @@ function verifyTenant(req) {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────
-const genGate   = () => String(Math.floor(1000 + Math.random() * 9000));
+const genGate   = () => String(Math.floor(1000 + Math.random() * 9000)) + '*';
 const genUnitId = (key) => {
   const pre = key === 'rv' ? 'RV' : key === 'container' ? 'CT'
     : ['A','B','C','D'][Math.floor(Math.random() * 4)];

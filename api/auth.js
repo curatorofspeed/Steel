@@ -44,6 +44,7 @@ function serialize(t) {
     phone: t.phone, size: t.size, key: t.unit_key,
     rent: t.rent, balance: t.balance, due: t.due_date,
     status: t.status, gate: t.gate_code, notes: t.notes,
+    address: t.address, contact2: t.contact2, vehicle: t.vehicle,
     autopay: t.autopay,
   };
 }

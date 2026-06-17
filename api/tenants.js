@@ -25,6 +25,7 @@ module.exports = async (req, res) => {
         rent: +t.rent || 0, balance: +t.balance || 0,
         due_date: t.due || null, status: t.status || 'Paid',
         gate_code: t.gate || null, notes: t.notes || null,
+        address: t.address || null, contact2: t.contact2 || null, vehicle: t.vehicle || null,
         autopay: !!t.autopay,
       }, { onConflict: 'unit' });
       if (error) console.error('Upsert error:', t.unit, error.message);
@@ -50,6 +51,7 @@ function serialize(t) {
     phone: t.phone, size: t.size, key: t.unit_key,
     rent: t.rent, balance: t.balance, due: t.due_date,
     status: t.status, gate: t.gate_code, notes: t.notes,
+    address: t.address, contact2: t.contact2, vehicle: t.vehicle,
     autopay: t.autopay, since: t.created_at?.split('T')[0],
   };
 }
