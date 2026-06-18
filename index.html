@@ -918,6 +918,14 @@
   .t2c .t2lbl{font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#54627a;margin-bottom:3px}
   .t2c .t2sub{font-size:12px;color:var(--muted);margin-top:2px}
   .resv-meta{font-size:13px;font-weight:700;color:var(--navy);background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:9px 12px;margin-bottom:14px}
+  .idupload{border:1.5px dashed var(--line-2);border-radius:11px;padding:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fafbfc;transition:.15s;min-height:84px}
+  .idupload:hover{border-color:var(--gold);background:#fffdf7}
+  .idupload #rIdEmpty{display:flex;align-items:center;gap:12px;color:var(--muted)}
+  .idupload .idtxt{display:flex;flex-direction:column}
+  .idupload .idtxt b{font-size:13.5px;color:var(--navy)}
+  .idupload .idtxt span{font-size:11.5px}
+  .idupload img{max-width:100%;max-height:200px;border-radius:8px;display:block}
+  .idview{max-width:100%;border-radius:10px;border:1px solid var(--line-2);display:block;margin-top:6px}
   .actbtn.pay:hover{background:#27894e}
   .actbtn.del:hover{border-color:var(--red);color:var(--red)}
   .stepper{display:inline-flex;align-items:center;gap:0;border:1px solid var(--line-2);border-radius:8px;overflow:hidden}
@@ -1608,7 +1616,17 @@ document.querySelectorAll('.navitem').forEach(n=>n.onclick=()=>{
   document.querySelectorAll('.ov').forEach(o=>o.classList.remove('on'));
   document.getElementById('ov-'+n.dataset.ov).classList.add('on');
   closeSide();
+  if(['dashboard','tenants','requests','units'].includes(n.dataset.ov)) refreshOwnerData();
 });
+async function refreshOwnerData(){
+  if(!API._jwt) return;
+  try{
+    const [u,t]=await Promise.all([API.loadUnits(),API.loadTenants()]);
+    if(u&&u.length) state.units=u;
+    if(Array.isArray(t)) state.tenants=t;
+    renderOwner();
+  }catch(e){}
+}
 
 /* gate */
 async function tryGate(){
@@ -1853,6 +1871,7 @@ const checkSVG='<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stro
 
 /* ---------------- public: reserve / waitlist ---------------- */
 function openReserve(key){
+  _idFrontData=null;
   const u=state.units.find(x=>x.key===key); if(!u||u.available<=0)return;
   openModalHTML(`
    <div class="modal-head"><div><h3>Reserve ${u.label}</h3><div class="ms">${fmtMoney(u.price)}/mo · ${u.available} available</div></div><button class="x" onclick="closeModal()">×</button></div>
@@ -1873,6 +1892,16 @@ function openReserve(key){
        <div class="fld row"><div><label>Contact phone</label><input id="r2Phone" placeholder="509-555-0188"></div><div><label>Contact email</label><input id="r2Email" type="email" placeholder="optional"></div></div>
      </div>
      <div class="fld row"><div><label>Create password</label><input id="rPw" type="password" placeholder="At least 6 characters"></div><div><label>Confirm password</label><input id="rPw2" type="password" placeholder="Re-type password"></div></div>
+     <div class="fld">
+       <label>Photo ID — front <span style="color:var(--red)">*</span></label>
+       <input type="file" id="rIdFile" accept="image/*" capture="environment" style="display:none" onchange="handleIdFile(this)">
+       <div id="rIdDrop" class="idupload" onclick="document.getElementById('rIdFile').click()">
+         <div id="rIdEmpty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:26px;height:26px"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M3 17l5-4 4 3 3-2 6 5"/></svg>
+           <div class="idtxt"><b>Tap to upload or take a photo</b><span>Driver's license or state ID — front only</span></div></div>
+         <img id="rIdPreview" style="display:none" alt="ID preview">
+       </div>
+       <div style="font-size:11.5px;color:var(--muted);margin-top:6px">Your ID is used to verify your identity and is kept private.</div>
+     </div>
      <div id="rErr" class="err" style="display:none">Please enter your name, email, and phone.</div>
    </div>
    <div class="modal-foot"><button class="btn btn-line" onclick="closeModal()">Cancel</button><button class="btn btn-gold" onclick="submitReserve('${key}')">Confirm Reservation</button></div>`);
@@ -1885,6 +1914,36 @@ function toggleR2(){
   if(t) t.textContent=show?'– Remove second contact':'＋ Add a second contact';
 }
 function toggleVeh(){ const b=document.getElementById('rVehBlock'); if(b) b.style.display=document.getElementById('rVeh').checked?'block':'none'; }
+let _idFrontData=null;
+function compressImage(file, maxDim, quality){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        let {width:w,height:h}=img;
+        if(w>h && w>maxDim){ h=Math.round(h*maxDim/w); w=maxDim; }
+        else if(h>maxDim){ w=Math.round(w*maxDim/h); h=maxDim; }
+        const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(cv.toDataURL('image/jpeg', quality));
+      };
+      img.onerror=reject; img.src=e.target.result;
+    };
+    reader.onerror=reject; reader.readAsDataURL(file);
+  });
+}
+async function handleIdFile(input){
+  const f=input.files&&input.files[0]; if(!f) return;
+  if(!f.type.startsWith('image/')){ toast('Please choose an image file'); return; }
+  try{
+    _idFrontData=await compressImage(f, 1000, 0.7);
+    const pv=document.getElementById('rIdPreview'), em=document.getElementById('rIdEmpty');
+    if(pv){ pv.src=_idFrontData; pv.style.display='block'; }
+    if(em) em.style.display='none';
+    const err=document.getElementById('rErr'); if(err) err.style.display='none';
+  }catch(e){ toast('Could not read that image — try another'); }
+}
 async function submitReserve(key){
   const u=state.units.find(x=>x.key===key); if(!u||u.available<=0)return;
   const name=val('rName'), email=val('rEmail'), phone=val('rPhone');
@@ -1899,9 +1958,10 @@ async function submitReserve(key){
   if(pw.length<6){ const e=document.getElementById('rErr'); e.textContent='Please create a password of at least 6 characters.'; e.style.display='block'; return; }
   if(pw!==pw2){ const e=document.getElementById('rErr'); e.textContent='Passwords do not match.'; e.style.display='block'; return; }
   const pwHash=await sha256(pw);
-  const extra={ phone, address:addr, contact2, vehicle, pwHash };
+  if(!_idFrontData){ const e=document.getElementById('rErr'); e.textContent='Please upload a photo of the front of your ID.'; e.style.display='block'; return; }
+  const extra={ phone, address:addr, contact2, vehicle, pwHash, idFront:_idFrontData };
   // Phase 2: call API
-  const apiResult=await API.reserve({unitKey:key,name,email,phone,address:addr,contact2,vehicle,password:pw});
+  const apiResult=await API.reserve({unitKey:key,name,email,phone,address:addr,contact2,vehicle,password:pw,idFront:_idFrontData});
   if(apiResult){
     u.available--;
     state.tenants.push({unit:apiResult.unit,name,email,size:u.label,rent:apiResult.rent||u.price,balance:0,due:apiResult.due,status:'Paid',gate:apiResult.gate,key,...extra});
@@ -2088,6 +2148,8 @@ function pdDocs(t,d){
        : `<div class="prow" style="border:none;padding:2px 0"><div><div class="dt" style="color:#9a6a16">Not signed yet</div><div class="ds">Review and sign your rental agreement.</div></div><button class="btn btn-gold" style="padding:7px 13px;font-size:13px" onclick="openLease(portalIdx)">Sign lease</button></div>`}
    </div>
    <div class="pcard"><h4>Other documents</h4>
+     <div class="prow"><div><div class="dt">Photo ID (front)</div><div class="ds">${t.idFront?'On file ✓':'Not uploaded'}</div></div>
+       <div style="display:flex;gap:8px;align-items:center">${t.idFront?`<button class="lnk" onclick="viewTenantId(portalIdx)">View</button>`:''}<input type="file" id="pdIdFile" accept="image/*" capture="environment" style="display:none" onchange="pdReplaceId(this)"><button class="lnk" onclick="document.getElementById('pdIdFile').click()">${t.idFront?'Replace':'Upload'}</button></div></div>
      ${[['Insurance Policy',`${d.insurer} · ${d.policy}`,'insurance'],['Current Invoice',`${t.due} · ${fmtMoney(t.rent)}`,'invoice']].map(([name,sub,kind])=>`<div class="prow"><div><div class="dt">${name}</div><div class="ds">${sub}</div></div><button class="lnk" onclick="pdDoc('${kind}')">Download</button></div>`).join('')}</div>
    <div style="font-size:12px;color:var(--muted);text-align:center;padding:0 6px">Documents are generated samples in demo mode.</div>`;
 }
@@ -2114,6 +2176,8 @@ function pdNotify(k){ const t=state.tenants[portalIdx],d=tenantDash(t); d[k]=!d[
 function pdSaveContact(){ const t=state.tenants[portalIdx],d=tenantDash(t); const em=val('pdEmail'),ph=val('pdPhone'); if(!em){toast('Email cannot be empty');return;} t.email=em; t.phone=ph; d.phone=ph; t.address=val('pdAddr'); saveAll(); renderPortal('account'); toast('Contact info updated'); }
 function pdSave2(){ const t=state.tenants[portalIdx]; const nm=val('pd2Name'); t.contact2 = nm?{name:nm,rel:val('pd2Rel'),phone:val('pd2Phone'),email:val('pd2Email')}:null; saveAll(); renderPortal('account'); toast(nm?'Second contact saved':'Second contact cleared'); }
 function pdSaveVeh(){ const t=state.tenants[portalIdx]; const on=document.getElementById('pdVehOn').checked; if(on){ const vin=val('pdVehVin'); if(!vin){toast('VIN is required for vehicle storage');return;} t.vehicle={type:val('pdVehType'),ymm:val('pdVehYMM'),vin:vin.toUpperCase(),plate:val('pdVehPlate').toUpperCase()}; } else { t.vehicle=null; } saveAll(); renderPortal('account'); toast('Vehicle info saved'); }
+function viewTenantId(i){ const t=state.tenants[i]; if(!t||!t.idFront) return; openModalHTML(`<div class="modal-head"><div><h3>Photo ID</h3><div class="ms">${t.name} · Unit ${t.unit}</div></div><button class="x" onclick="closeModal()">×</button></div><div class="modal-body"><img src="${t.idFront}" style="width:100%;border-radius:10px"></div><div class="modal-foot"><button class="btn btn-navy" onclick="closeModal()">Close</button></div>`); const mc=document.getElementById('modalCard'); if(mc) mc.classList.add('wide'); }
+async function pdReplaceId(input){ const f=input.files&&input.files[0]; if(!f) return; if(!f.type.startsWith('image/')){toast('Please choose an image');return;} try{ const data=await compressImage(f,1000,0.7); state.tenants[portalIdx].idFront=data; saveAll(); renderPortal('docs'); toast('ID updated'); }catch(e){ toast('Could not read that image'); } }
 function pdResetGate(){ const t=state.tenants[portalIdx]; t.gate=genGate(); saveAll(); renderPortal('account'); toast('New gate code generated'); }
 function pdUpdateCard(){ toast('Card updates unlock once Stripe is connected'); }
 function pdRequest(kind){
@@ -2420,6 +2484,7 @@ function renderUnitDetail(){
        </div>
        ${t.contact2&&t.contact2.name?`<div class="t2c"><div class="t2lbl">Second contact</div><b>${t.contact2.name}</b>${t.contact2.rel?` · ${t.contact2.rel}`:''}<div class="t2sub">${[t.contact2.phone,t.contact2.email].filter(Boolean).join(' · ')||'—'}</div></div>`:''}
        ${t.vehicle&&t.vehicle.vin?`<div class="t2c"><div class="t2lbl">Vehicle stored</div><b>${t.vehicle.ymm||t.vehicle.type}</b>${t.vehicle.ymm&&t.vehicle.type?` · ${t.vehicle.type}`:''}<div class="t2sub">VIN ${t.vehicle.vin}${t.vehicle.plate?` · Plate ${t.vehicle.plate}`:''}</div></div>`:''}
+       ${t.idFront?`<div class="t2c"><div class="t2lbl">Photo ID (front)</div><img class="idview" src="${t.idFront}" alt="Tenant ID front" style="cursor:zoom-in" onclick="viewTenantId(${detailIdx})"></div>`:`<div class="t2c" style="background:#fff4e6;border-color:#f0d6a8"><div class="t2lbl" style="color:#9a6a16">No ID on file</div></div>`}
        <span class="tsince">Tenant since ${d.since}</span>
        <div class="dlink" onclick="openEditTenant(${detailIdx})">View Tenant Profile</div>
      </div>
